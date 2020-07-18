@@ -18,8 +18,8 @@ requirments_nn.txt - for neuralnet.py
 - In the neuralnet.py, I used cuda:1 instead of cuda:0 due to hardware issue
 
 ## Project Result
-[NB Model]()
+[NB Model](https://github.com/yongkyung-oh/Udacity-ML-Capstone/blob/master/naivebayes.ipynb)
 
-[NN Model-W2V]()
+[NN Model-W2V](https://github.com/yongkyung-oh/Udacity-ML-Capstone/blob/master/neuralnet-W2V.ipynb)
 
-[NN Model-G6B]()
+[NN Model-G6B](https://github.com/yongkyung-oh/Udacity-ML-Capstone/blob/master/neuralnet-G6B.ipynb)
