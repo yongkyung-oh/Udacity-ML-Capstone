@@ -1,9 +1,8 @@
-naivebayes.py dev_text.txt dev_label.txt heldout_text.txt heldout_pred_nb.txt
-neuralnet.py dev_text.txt dev_label.txt heldout_text.txt heldout_pred_nn.txt
+Use Python 3.11 and requirements.txt in a separate virtual environment.
 
-requirments.txt - for naivebayes.py
-requirments_nn.txt - for neuralnet.py
+python -m nltk.downloader punkt_tab
+python naivebayes.py dev_text.txt dev_label.txt heldout_text.txt heldout_pred_nb.txt
 
-- Tested on ubuntu 16.04
-- Used 'python' rather than 'python3'
-- In the neuralnet.py, I used cuda:1 instead of cuda:0 due to hardware issue
+requirements_nn.txt adds PyTorch for importing the RNN class.
+Neural prediction requires compatible torchtext.data.Iterator. Training also requires torchtext.data/vocab APIs, pandas.DataFrame.append, matplotlib and weights-only PyTorch checkpoint loading; W2V requires gensim Word2Vec(size=...).
+See the repository SECURITY.md for installation and use.

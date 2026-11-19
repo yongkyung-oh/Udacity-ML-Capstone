@@ -3,12 +3,8 @@ import sys
 import numpy as np
 import pandas as pd
 
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
 import torch
-import torchtext
 import re
 import random
 
@@ -16,7 +12,6 @@ from scipy.sparse import csr_matrix, vstack
 from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.tokenize import word_tokenize, sent_tokenize
-from gensim.models import Word2Vec, KeyedVectors
 from collections import Counter
 
 # Module for data processing and model
@@ -24,10 +19,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from torchtext.vocab import Vectors, Vocab
-from torchtext.vocab import GloVe
-from torchtext.data import TabularDataset
-from torchtext.data import Iterator, BucketIterator
 
 SEED = 0
 np.random.seed(SEED)
@@ -145,6 +136,7 @@ def evaluate(model, val_iter):
     return avg_loss, avg_accuracy
 
 def predict(model, eval_data):
+    Iterator = _require_legacy_pipeline()
     eval_iter_pred = Iterator(eval_data, batch_size=len(eval_data),
                               sort_key=lambda x: len(x.text),
                               sort_within_batch = False,
@@ -158,6 +150,58 @@ def predict(model, eval_data):
     return pred
 
 
+def _require_legacy_pipeline():
+    try:
+        from torchtext.data import Iterator
+        if not callable(Iterator):
+            raise AttributeError("Iterator")
+    except (ImportError, OSError, RuntimeError, AttributeError) as exc:
+        raise RuntimeError("Prediction requires a compatible torchtext.data.Iterator.") from exc
+    return Iterator
+
+
+def _require_weights_only_load():
+    import inspect
+    if "weights_only" not in inspect.signature(torch.load).parameters:
+        raise RuntimeError("Checkpoint loading requires torch.load(weights_only=True).")
+
+
+def _load_checkpoint(path):
+    _require_weights_only_load()
+    return torch.load(path, weights_only=True, map_location=device)
+
+
+def _require_training_pipeline():
+    _require_legacy_pipeline()
+    _require_weights_only_load()
+    try:
+        import torchtext
+        from torchtext.data import Field, TabularDataset, BucketIterator
+        from torchtext.vocab import Vectors, GloVe
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        if not all(callable(api) for api in (Field, TabularDataset.splits,
+                                             BucketIterator.splits, Vectors, GloVe,
+                                             pd.DataFrame.append)):
+            raise AttributeError("training API")
+        backend = dict(torchtext=torchtext, TabularDataset=TabularDataset,
+                       BucketIterator=BucketIterator, Vectors=Vectors,
+                       GloVe=GloVe, plt=plt)
+        if Embedding == 'W2V':
+            import inspect
+            from gensim.models import Word2Vec, KeyedVectors
+            if "size" not in inspect.signature(Word2Vec.__init__).parameters:
+                raise AttributeError("Word2Vec(size=...)")
+            backend.update(Word2Vec=Word2Vec, KeyedVectors=KeyedVectors)
+    except (ImportError, OSError, RuntimeError, AttributeError) as exc:
+        raise RuntimeError(
+            "Training requires compatible torchtext.data/vocab APIs, "
+            "pandas.DataFrame.append and matplotlib; W2V also requires gensim Word2Vec(size=...)."
+        ) from exc
+    return backend
+
+
 if __name__ == '__main__':
     if len(sys.argv) != 5:
         print('sys.argv[1]: dev_text.txt')
@@ -166,9 +210,11 @@ if __name__ == '__main__':
         print('sys.argv[4]: heldout_pred_nb.txt')
         quit()
 
+    globals().update(_require_training_pipeline())
+
     #To setup nltk
     import nltk
-    nltk.download('punkt')
+    nltk.download('punkt_tab', raise_on_error=True)
         
     dev_text_file = sys.argv[1]
     dev_label_file = sys.argv[2]
@@ -348,7 +394,7 @@ if __name__ == '__main__':
     #plt.show()    
     
     #Predict results
-    model.load_state_dict(torch.load('./snapshot/LSTM_classification.pt'))    
+    model.load_state_dict(_load_checkpoint('./snapshot/LSTM_classification.pt'))
     
     pred_train = predict(model, train_data)
     y_train = np.array([data.label for data in train_data.examples])

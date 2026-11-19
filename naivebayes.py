@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
     #To setup nltk
     import nltk
-    nltk.download('punkt')
+    nltk.download('punkt_tab', raise_on_error=True)
         
     dev_text_file = sys.argv[1]
     dev_label_file = sys.argv[2]
@@ -124,7 +124,7 @@ if __name__ == '__main__':
     train_data = []
     for i in range(Train_feature.shape[0]):
         train_data.append([Train_text['label'].iloc[i], Train_feature.getrow(i)])
-    train_data = np.asarray(train_data)
+    train_data = np.asarray(train_data, dtype=object)
     np.random.shuffle(train_data)    
     
     #Define data to train and test

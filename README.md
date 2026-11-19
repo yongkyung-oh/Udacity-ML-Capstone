@@ -6,16 +6,11 @@ In this project, I build two sentiment classifiers based on Naive Bayes and neur
 
 ## Code
 
-`naivebayes.py dev_text.txt dev_label.txt heldout_text.txt heldout_pred_nb.txt`
+```sh
+python naivebayes.py dev_text.txt dev_label.txt heldout_text.txt heldout_pred_nb.txt
+```
 
-`neuralnet.py dev_text.txt dev_label.txt heldout_text.txt heldout_pred_nn.txt`
-
-requirments.txt - for naivebayes.py
-requirments_nn.txt - for neuralnet.py
-
-- Tested on ubuntu 16.04
-- Used 'python' rather than 'python3'
-- In the neuralnet.py, I used cuda:1 instead of cuda:0 due to hardware issue
+Use Python 3.11 with `requirements.txt` for Naive Bayes. `requirements_nn.txt` adds PyTorch for RNN module use. Neural prediction requires compatible torchtext.data.Iterator. Training also requires torchtext.data/vocab APIs, pandas.DataFrame.append, matplotlib and weights-only PyTorch checkpoint loading; W2V requires gensim Word2Vec(size=...). See [Installation and use](SECURITY.md).
 
 ## Project Result
 [NB Model](https://github.com/yongkyung-oh/Udacity-ML-Capstone/blob/master/naivebayes.ipynb)
